@@ -1,0 +1,56 @@
+.card {
+  height: 400px;
+}
+.tableWrapper {
+  overflow-y: auto;
+  height: 100%;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.table th {
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-secondary);
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
+  z-index: 10;
+}
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.row-critical { background-color: rgba(239, 68, 68, 0.05); }
+.row-warning { background-color: rgba(245, 158, 11, 0.05); }
+.row-offline { opacity: 0.6; }
+
+.statusBadge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-family: system-ui, sans-serif;
+  display: inline-block;
+}
+.statusBadge[data-status="healthy"] { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.statusBadge[data-status="warning"] { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.statusBadge[data-status="critical"] { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+.statusBadge[data-status="offline"] { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+.empty {
+  text-align: center;
+  padding: 40px !important;
+  color: var(--text-secondary);
+  font-family: system-ui, sans-serif;
+}

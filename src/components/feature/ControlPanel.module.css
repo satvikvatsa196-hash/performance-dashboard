@@ -1,0 +1,35 @@
+.panel {
+  margin-bottom: 20px;
+}
+.grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.group label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.group select {
+  padding: 8px 12px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  min-width: 160px;
+  transition: border-color 0.15s ease;
+  cursor: pointer;
+}
+.group select:focus, .group select:hover {
+  border-color: #475569;
+}
