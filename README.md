@@ -28,7 +28,7 @@ graph TD
     Hook -->|postMessage UPDATE_CONFIG| Worker[Data Simulator Web Worker]
     
     Worker -->|Mutates raw data array| Mutate["In-Place Data Mutation"]
-    Mutate -->|Single pass O N| Process["Filter, Aggregate, Top-K Sort"]
+    Mutate -->|Single pass ON| Process["Filter, Aggregate, Top-K Sort"]
     Process -->|postMessage TICK| Hook
     
     Hook -->|Sets React State| Metrics["Summary Metrics"]
