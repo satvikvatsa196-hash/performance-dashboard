@@ -23,17 +23,17 @@ The application leverages a Web Worker to entirely decouple data generation, fil
 
 ```mermaid
 graph TD
-    UI[Dashboard UI] --> |Dispatches config| Reducer[Config Reducer]
-    Reducer --> |Passes filters & limit| Hook[useDataWorker Hook]
-    Hook --> |postMessage: UPDATE_CONFIG| Worker[Data Simulator Web Worker]
+    UI[Dashboard UI] -->|Dispatches config| Reducer[Config Reducer]
+    Reducer -->|Passes filters and limit| Hook[useDataWorker Hook]
+    Hook -->|postMessage UPDATE_CONFIG| Worker[Data Simulator Web Worker]
     
-    Worker --> |Mutates raw data array| Mutate["In-Place Data Mutation"]
-    Mutate --> |O(N) pass| Process["Filter, Aggregate, Top-K Sort"]
-    Process --> |postMessage: TICK| Hook
+    Worker -->|Mutates raw data array| Mutate["In-Place Data Mutation"]
+    Mutate -->|Single pass O N| Process["Filter, Aggregate, Top-K Sort"]
+    Process -->|postMessage TICK| Hook
     
-    Hook --> |Sets React State| Metrics["Summary Metrics"]
-    Hook --> |Updates ref & ECharts| Chart["Macro Trend Chart"]
-    Hook --> |Sets React State| Table["Telemetry Table"]
+    Hook -->|Sets React State| Metrics["Summary Metrics"]
+    Hook -->|Updates ref and ECharts| Chart["Macro Trend Chart"]
+    Hook -->|Sets React State| Table["Telemetry Table"]
 ```
 
 ## Data Pipeline
