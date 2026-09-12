@@ -1,5 +1,40 @@
 import { TelemetryUpdate, TelemetryAggregates, FilterState, SortState } from '../types';
 
+class BoundedTopK {
+  private items: TelemetryUpdate[] = [];
+  
+  constructor(private limit: number, private sortField: keyof TelemetryUpdate, private isAsc: boolean) {}
+
+  insert(item: TelemetryUpdate) {
+    const val = item[this.sortField];
+    
+    if (this.items.length === this.limit) {
+      const worstInTopK = this.items[this.limit - 1][this.sortField];
+      if (this.isAsc ? val >= worstInTopK : val <= worstInTopK) {
+        return;
+      }
+    }
+
+    let insertIdx = this.items.length;
+    while (insertIdx > 0) {
+      const cmp = this.items[insertIdx - 1][this.sortField];
+      if (this.isAsc ? val >= cmp : val <= cmp) {
+        break;
+      }
+      insertIdx--;
+    }
+
+    this.items.splice(insertIdx, 0, item);
+    if (this.items.length > this.limit) {
+      this.items.pop();
+    }
+  }
+
+  getItems() {
+    return this.items;
+  }
+}
+
 export function processDashboardData(
   data: readonly TelemetryUpdate[],
   filter: FilterState,
@@ -20,14 +55,12 @@ export function processDashboardData(
   let totalFiltered = 0;
   
   // Maintain a bounded array for Top K elements
-  const topK: TelemetryUpdate[] = [];
+  const topK = new BoundedTopK(limit, sort.field, sort.direction === 'asc');
 
   const filterRegion = filter.region;
   const filterStatus = filter.status;
   const checkRegion = filterRegion !== 'all';
   const checkStatus = filterStatus !== 'all';
-  const sortField = sort.field;
-  const isAsc = sort.direction === 'asc';
 
   for (let i = 0; i < len; i++) {
     const item = data[i];
@@ -49,30 +82,7 @@ export function processDashboardData(
     else if (status === 'warning') warningServers++;
 
     // 3. Top-K Sorting (Bounded Insertion)
-    const val = item[sortField];
-    
-    if (topK.length === limit) {
-      const worstInTopK = topK[limit - 1][sortField];
-      // Skip if this item doesn't beat the worst item in our bounded list
-      if (isAsc ? val >= worstInTopK : val <= worstInTopK) {
-        continue;
-      }
-    }
-
-    // Insert into sorted position
-    let insertIdx = topK.length;
-    while (insertIdx > 0) {
-      const cmp = topK[insertIdx - 1][sortField];
-      if (isAsc ? val >= cmp : val <= cmp) {
-        break;
-      }
-      insertIdx--;
-    }
-
-    topK.splice(insertIdx, 0, item);
-    if (topK.length > limit) {
-      topK.pop(); // Keep array bounded to exactly `limit`
-    }
+    topK.insert(item);
   }
 
   const aggregates: TelemetryAggregates = {
@@ -86,5 +96,5 @@ export function processDashboardData(
     totalNetworkOut
   };
 
-  return { filtered: topK, aggregates };
+  return { filtered: topK.getItems(), aggregates };
 }

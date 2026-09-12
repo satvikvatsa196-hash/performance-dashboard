@@ -7,7 +7,7 @@ interface Props {
   data: TelemetryUpdate[];
 }
 
-export const TelemetryTable: React.FC<Props> = ({ data }) => {
+export const TelemetryTable: React.FC<Props> = React.memo(({ data }) => {
   return (
     <Card title="Live Server Telemetry (Top 100)" className={styles.card}>
       <div 
@@ -46,7 +46,17 @@ export const TelemetryTable: React.FC<Props> = ({ data }) => {
             ))}
             {data.length === 0 && (
               <tr>
-                <td colSpan={7} className={styles.empty}>No servers match the current filters.</td>
+                <td colSpan={7}>
+                  <div className={styles.empty}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5 }}>
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <p>No servers match the current filters.</p>
+                    <p style={{ fontSize: '12px', opacity: 0.7, marginTop: '8px' }}>Try adjusting your Region or Status selections.</p>
+                  </div>
+                </td>
               </tr>
             )}
           </tbody>
@@ -54,4 +64,4 @@ export const TelemetryTable: React.FC<Props> = ({ data }) => {
       </div>
     </Card>
   );
-};
+});

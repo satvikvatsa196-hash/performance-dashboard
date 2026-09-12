@@ -1,5 +1,5 @@
-import React from 'react';
-import ReactECharts from 'echarts-for-react';
+import React, { useEffect, useRef } from 'react';
+import * as echarts from 'echarts';
 import { ChartDataset } from '../../types';
 import { Card } from '../ui/Card';
 
@@ -8,11 +8,27 @@ interface Props {
 }
 
 export const MacroTrendChart: React.FC<Props> = ({ dataset }) => {
-  const options = (!dataset || dataset.series.length === 0 || dataset.series[0].data.length === 0) 
-    ? {
-        title: { text: 'No Data Available', left: 'center', top: 'center', textStyle: { color: '#888' } }
-      }
-    : {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInstance = useRef<echarts.ECharts | null>(null);
+
+  useEffect(() => {
+    if (chartRef.current && !chartInstance.current) {
+      chartInstance.current = echarts.init(chartRef.current, undefined, { renderer: 'canvas' });
+      
+      const handleResize = () => chartInstance.current?.resize();
+      window.addEventListener('resize', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        chartInstance.current?.dispose();
+        chartInstance.current = null;
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!chartInstance.current || !dataset || dataset.series.length === 0 || dataset.series[0].data.length === 0) return;
+
+    chartInstance.current.setOption({
       tooltip: {
         trigger: 'axis',
         backgroundColor: 'rgba(25, 25, 25, 0.9)',
@@ -50,18 +66,17 @@ export const MacroTrendChart: React.FC<Props> = ({ dataset }) => {
         itemStyle: { color: s.color },
         data: s.data.map(p => [p.timestamp, p.value])
       })),
-      animation: false // Disabled to support high-frequency updates later
-    };
+      animation: false
+    });
+  }, [dataset]);
+
+  const isEmpty = !dataset || dataset.series.length === 0 || dataset.series[0].data.length === 0;
 
   return (
     <Card title="Global CPU & Memory Trend" className="chart-card">
-      <div role="img" aria-label="Line chart showing global CPU and Memory trends over the last 60 seconds.">
-        <ReactECharts
-          option={options}
-          style={{ height: '100%', minHeight: '300px' }}
-          opts={{ renderer: 'canvas' }}
-          notMerge={false} // Allow ECharts internal diffing engine to reconcile updates
-        />
+      <div role="img" aria-label="Line chart showing global CPU and Memory trends over the last 60 seconds." style={{ height: '100%', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {isEmpty && <div style={{ color: '#888' }}>No Data Available</div>}
+        <div ref={chartRef} style={{ width: '100%', height: '100%', display: isEmpty ? 'none' : 'block' }} />
       </div>
     </Card>
   );

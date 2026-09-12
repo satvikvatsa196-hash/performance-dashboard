@@ -34,6 +34,7 @@ export interface WorkerMessageTick {
     // Sliced view for the virtualized table
     visibleServers: TelemetryUpdate[];
     totalFilteredServers: number;
+    timestamp: number;
   };
 }
 

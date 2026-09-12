@@ -5,14 +5,15 @@ import { processDashboardData } from '../utils/dataProcessing';
 
 let config: DashboardConfig | null = null;
 let rawData: TelemetryUpdate[] = [];
-let intervalId: ReturnType<typeof setInterval> | null = null;
+let timeoutId: ReturnType<typeof setTimeout> | null = null;
+let isRunning = false;
 
 function broadcast(message: WorkerMessage) {
   self.postMessage(message);
 }
 
 function handleTick() {
-  if (!config || rawData.length === 0) return;
+  if (!config || rawData.length === 0 || !isRunning) return;
 
   try {
     // 1. Mutate dataset on background thread
@@ -33,26 +34,33 @@ function handleTick() {
       payload: {
         aggregates,
         visibleServers: filtered,
-        totalFilteredServers: filtered.length
+        totalFilteredServers: filtered.length,
+        timestamp: Date.now()
       }
     });
   } catch (error) {
     broadcast({ type: 'ERROR', payload: { message: error instanceof Error ? error.message : 'Unknown error during tick' }});
   }
+
+  if (isRunning && config) {
+    const ms = 1000 / config.simulation.tickRateHz;
+    timeoutId = setTimeout(handleTick, ms);
+  }
 }
 
 function startLoop() {
-  if (intervalId !== null) clearInterval(intervalId);
+  if (isRunning) return;
+  isRunning = true;
   if (!config) return;
   
-  const ms = 1000 / config.simulation.tickRateHz;
-  intervalId = setInterval(handleTick, ms);
+  handleTick();
 }
 
 function stopLoop() {
-  if (intervalId !== null) {
-    clearInterval(intervalId);
-    intervalId = null;
+  isRunning = false;
+  if (timeoutId !== null) {
+    clearTimeout(timeoutId);
+    timeoutId = null;
   }
 }
 
@@ -77,8 +85,9 @@ self.onmessage = (e: MessageEvent<WorkerCommand>) => {
         broadcast({ type: 'READY' });
       }
       
-      // Update interval immediately if tick rate changed
-      if (intervalId !== null) {
+      // Restart loop if it was already running to apply new tick rate
+      if (isRunning) {
+        stopLoop();
         startLoop();
       }
       break;

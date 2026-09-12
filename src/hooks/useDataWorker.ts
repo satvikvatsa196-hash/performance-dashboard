@@ -10,6 +10,7 @@ export function useDataWorker(config: DashboardConfig) {
   const [error, setError] = useState<string | null>(null);
 
   const workerRef = useRef<Worker | null>(null);
+  const prevTotalServers = useRef(config.simulation.totalServers);
   const historyRef = useRef<{ timestamp: number; cpu: number; mem: number }[]>([]);
   const frameCountRef = useRef(0);
   const lastRenderTimeRef = useRef<number>(Date.now());
@@ -37,11 +38,12 @@ export function useDataWorker(config: DashboardConfig) {
           if (!isReadyRef.current) return;
           
           const currentAggs = msg.payload.aggregates;
+          const tickTime = msg.payload.timestamp;
           const now = Date.now();
           
           // Maintain historical buffer on main thread purely for chart UI
           historyRef.current.push({
-            timestamp: now,
+            timestamp: tickTime,
             cpu: currentAggs.averageCpu,
             mem: currentAggs.averageMemory
           });
@@ -71,7 +73,7 @@ export function useDataWorker(config: DashboardConfig) {
     };
 
     setIsLoading(true);
-    worker.postMessage({ type: 'INIT', payload: config } as WorkerCommand);
+    worker.postMessage({ type: 'INIT', payload: config });
 
     return () => {
       worker.terminate();
@@ -82,10 +84,11 @@ export function useDataWorker(config: DashboardConfig) {
   // 2. Sync Config Changes directly to Worker
   useEffect(() => {
     if (workerRef.current && isReadyRef.current) {
-      if (config.simulation.totalServers !== config.simulation.totalServers) {
+      if (prevTotalServers.current !== config.simulation.totalServers) {
          setIsLoading(true); // Show loading when array size changes
+         prevTotalServers.current = config.simulation.totalServers;
       }
-      workerRef.current.postMessage({ type: 'UPDATE_CONFIG', payload: config } as WorkerCommand);
+      workerRef.current.postMessage({ type: 'UPDATE_CONFIG', payload: config });
     }
   }, [config]);
 

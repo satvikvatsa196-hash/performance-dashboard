@@ -3,6 +3,8 @@
 }
 .tableWrapper {
   overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   height: 100%;
 }
 .table {
@@ -49,8 +51,14 @@
 .statusBadge[data-status="critical"] { background: rgba(239, 68, 68, 0.15); color: #f87171; }
 .statusBadge[data-status="offline"] { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
 .empty {
-  text-align: center;
-  padding: 40px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px !important;
   color: var(--text-secondary);
   font-family: system-ui, sans-serif;
+}
+.empty p {
+  margin: 0;
 }

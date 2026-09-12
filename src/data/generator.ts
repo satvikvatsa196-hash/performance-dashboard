@@ -25,6 +25,12 @@ export const DatasetSizes = {
   extreme: 100000
 };
 
+export function determineServerStatus(cpuUsage: number, memUsage: number): ServerStatus {
+  if (cpuUsage > 90 || memUsage > 90) return 'critical';
+  if (cpuUsage > 75 || memUsage > 80) return 'warning';
+  return 'healthy';
+}
+
 export function generateInitialDataset(size: number, seed: number = 12345): TelemetryUpdate[] {
   const prng = new PRNG(seed);
   const dataset: TelemetryUpdate[] = new Array(size);
@@ -34,9 +40,7 @@ export function generateInitialDataset(size: number, seed: number = 12345): Tele
     const cpuUsage = prng.nextRange(5, 95);
     const memUsage = prng.nextRange(10, 90);
     
-    let status: ServerStatus = 'healthy';
-    if (cpuUsage > 90 || memUsage > 90) status = 'critical';
-    else if (cpuUsage > 75 || memUsage > 80) status = 'warning';
+    let status = determineServerStatus(cpuUsage, memUsage);
 
     // Simulate 1% offline
     if (prng.next() < 0.01) status = 'offline';
@@ -57,6 +61,10 @@ export function generateInitialDataset(size: number, seed: number = 12345): Tele
   return dataset;
 }
 
+/**
+ * Simulates a single tick of telemetry data.
+ * WARNING: Mutates the `currentData` array in-place for high performance.
+ */
 export function simulateTick(currentData: TelemetryUpdate[], seed: number = 54321): void {
   const prng = new PRNG(seed + (Date.now() % 10000)); // semi-deterministic for ticks
   const now = Date.now();
@@ -81,13 +89,7 @@ export function simulateTick(currentData: TelemetryUpdate[], seed: number = 5432
     server.networkOut = Math.max(0, server.networkOut + prng.nextRange(-50, 50));
     server.timestamp = now;
 
-    if (server.cpuUsage > 90 || server.memUsage > 90) {
-      server.status = 'critical';
-    } else if (server.cpuUsage > 75 || server.memUsage > 80) {
-      server.status = 'warning';
-    } else {
-      server.status = 'healthy';
-    }
+    server.status = determineServerStatus(server.cpuUsage, server.memUsage);
 
     // 0.1% chance to go offline suddenly
     if (prng.next() < 0.001) {
