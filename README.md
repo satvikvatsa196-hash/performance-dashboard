@@ -1,5 +1,7 @@
 # Global Cloud Telemetry Dashboard
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-black?logo=vercel&logoColor=white)](https://performance-dashboard-wheat-nine.vercel.app)
+
 ## Overview
 The Global Cloud Telemetry Dashboard solves the problem of displaying, filtering, and aggregating high-frequency server metrics (CPU, Memory, Network) without blocking the main browser thread. Monitoring tools traditionally suffer from severe UI lag when processing thousands of constantly updating records. This dashboard maintains a fluid 60 FPS while handling large dataset mutations.
 
